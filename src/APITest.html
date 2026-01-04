@@ -1,0 +1,70 @@
+<html>
+<head>
+    <title>Data Verification</title>
+</head>
+<body>
+    <h1>Data Verification API</h1>
+
+    <form id="verifyForm">
+        <input type="text" name="name" id="nameInput" placeholder="Enter Name" required><br>
+        <input type="text" name="phonenumber" id="phoneInput" placeholder="Enter Phone Number" required><br>
+        <input type="submit" value="Verify">
+    </form>
+
+    <div id="resultCard" style="display: none; border: 1px solid #ccc; padding: 15px; border-radius: 8px; margin-top: 10px;">
+        <h3>Verification Result</h3>
+        <p><strong>Name:</strong> <span id="resName"></span></p>
+        <p><strong>Phone:</strong> <span id="resPhone"></span></p>
+        <p><strong>Address:</strong> <span id="resAddress"></span></p>
+        <p><strong>DOB:</strong> <span id="resDob"></span></p>
+    </div>
+
+    <script>
+        const form = document.getElementById('verifyForm');
+
+        form.addEventListener('submit', function(event) {
+            event.preventDefault(); 
+
+            // 1. Create the JSON Payload (The "Package")
+            const payload = {
+                name: document.getElementById('nameInput').value,
+                phonenumber: document.getElementById('phoneInput').value
+            };
+
+            // 2. Send the JSON Package to API 1
+            fetch('http://127.0.0.1:8000/verify', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json' 
+                },
+                body: JSON.stringify(payload) 
+            })
+            .then(response => response.json())
+            .then(data => {
+                const card = document.getElementById('resultCard');
+                card.style.display = 'block';
+
+                // Check for "error" key from your Global Handler
+                if (data.error) {
+                    card.style.borderColor = 'red';
+                    document.getElementById('resName').innerText = "Verification Failed";
+                    document.getElementById('resAddress').innerText = data.error; // Shows 404/401 messages
+                    document.getElementById('resPhone').innerText = "";
+                    document.getElementById('resDob').innerText = "";
+                } else {
+                    card.style.borderColor = 'green';
+                    // These must match the field names in your UserVerify Model
+                    document.getElementById('resName').innerText = data.name || 'N/A';
+                    document.getElementById('resPhone').innerText = data.phonenumber || 'N/A';
+                    document.getElementById('resAddress').innerText = data.address || 'N/A';
+                    document.getElementById('resDob').innerText = data.dob || 'N/A';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert("Network Error: Could not reach API 1.");
+            });
+        });
+    </script>
+</body>
+</html>
